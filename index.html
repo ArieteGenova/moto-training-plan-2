@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Curve in moto</title>
+<style>
+  /* Layout: menu laterale fisso, una pagina per sezione, riquadri colorati. Tema scuro unico. */
+  :root {
+    color-scheme: dark;
+    --bg: #0d1117;
+    --bg2: #161b22;
+    --bg3: #21262d;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text2: #8b949e;
+    --text3: #6e7681;
+    --teal: #39d353;
+    --teal-dim: #1a4d2e;
+    --purple: #a371f7;
+    --amber: #e3b341;
+    --amber-dim: #3d2e00;
+    --coral: #f78166;
+    --coral-dim: #4a1e1a;
+    --blue: #58a6ff;
+    --blue-dim: #0d2044;
+    --mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+    --sans: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { background: var(--bg); }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 15px; line-height: 1.7; }
+  :focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+  .shell { display: flex; min-height: 100vh; }
+  .sidebar { width: 280px; min-width: 280px; background: var(--bg2); border-right: 1px solid var(--border); padding: 24px 0; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+  .main { flex: 1; padding: 48px 56px; max-width: 860px; }
+
+  .sidebar-title { font-size: 11px; font-weight: 600; letter-spacing: .1em; color: var(--text3); text-transform: uppercase; padding: 0 20px 12px; }
+  .mod-group { border-bottom: 1px solid var(--border); }
+  .mod-btn { display: flex; align-items: flex-start; gap: 10px; width: 100%; background: none; border: none; color: var(--text2); cursor: pointer; padding: 10px 14px 10px 20px; text-align: left; transition: background .15s, color .15s; font-family: var(--sans); font-size: 13px; line-height: 1.4; }
+  .mod-btn:hover, .mod-btn.active { background: var(--bg3); color: var(--text); }
+  .mod-btn-text { flex: 1; min-width: 0; }
+  .mod-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+  .dot-teal { background: var(--teal); }
+  .dot-purple { background: var(--purple); }
+  .dot-amber { background: var(--amber); }
+  .dot-coral { background: var(--coral); }
+  .dot-blue { background: var(--blue); }
+  .mod-label { font-size: 11px; display: block; margin-top: 2px; color: var(--text3); }
+
+  .mod-page { display: none; }
+  .mod-page.visible { display: block; }
+
+  .page-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 8px; }
+  .eyebrow-teal { color: var(--teal); }
+  .eyebrow-purple { color: var(--purple); }
+  .eyebrow-amber { color: var(--amber); }
+  .eyebrow-coral { color: var(--coral); }
+  .eyebrow-blue { color: var(--blue); }
+
+  h1 { font-size: 28px; font-weight: 700; line-height: 1.2; margin-bottom: 8px; text-wrap: balance; }
+  .page-sub { color: var(--text2); font-size: 15px; margin-bottom: 36px; padding-bottom: 24px; border-bottom: 1px solid var(--border); max-width: 65ch; }
+  h2 { font-size: 17px; font-weight: 600; margin: 36px 0 12px; color: var(--text); text-wrap: balance; }
+  p { margin-bottom: 14px; color: var(--text2); max-width: 65ch; }
+  p strong, li strong { color: var(--text); font-weight: 600; }
+  ul, ol { margin: 0 0 14px 20px; color: var(--text2); max-width: 65ch; }
+  li { margin-bottom: 6px; }
+
+  .tag { display: inline-block; font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--purple); border: 1px solid var(--purple); border-radius: 999px; padding: 1px 8px; margin-left: 8px; vertical-align: middle; }
+
+  .anatomy { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .anatomy thead tr { background: var(--bg3); }
+  .anatomy th { padding: 8px 14px; text-align: left; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--text3); border-bottom: 1px solid var(--border); }
+  .anatomy td { padding: 8px 14px; border-bottom: 1px solid var(--border); vertical-align: top; color: var(--text2); }
+  .anatomy tr:last-child td { border-bottom: none; }
+  .anatomy .part { font-family: var(--mono); font-size: 12px; color: var(--teal); white-space: nowrap; }
+  .table-scroll { overflow-x: auto; margin: 16px 0 24px; }
+  .table-scroll .anatomy { min-width: 560px; }
+
+  .callout { border-left: 3px solid; border-radius: 0 6px 6px 0; padding: 12px 16px; margin: 20px 0; font-size: 14px; max-width: 65ch; }
+  .callout-tip { border-color: var(--teal); background: var(--teal-dim); }
+  .callout-warn { border-color: var(--amber); background: var(--amber-dim); }
+  .callout-danger { border-color: var(--coral); background: var(--coral-dim); }
+  .callout-info { border-color: var(--blue); background: var(--blue-dim); }
+  .callout p { margin: 0; color: var(--text); }
+  .callout-label { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 4px; }
+  .callout-tip .callout-label { color: var(--teal); }
+  .callout-warn .callout-label { color: var(--amber); }
+  .callout-danger .callout-label { color: var(--coral); }
+  .callout-info .callout-label { color: var(--blue); }
+
+  .diagram-box { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin: 20px 0; overflow-x: auto; }
+  .diagram-box svg { width: 100%; height: auto; display: block; min-width: 460px; }
+  .diagram-caption { font-size: 12px; color: var(--text3); text-align: center; margin-top: 10px; }
+
+  .nav-row { display: flex; gap: 12px; margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--border); }
+  .nav-btn { display: flex; align-items: center; gap: 8px; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 16px; cursor: pointer; font-family: var(--sans); font-size: 13px; color: var(--text2); transition: border-color .15s, color .15s; }
+  .nav-btn:hover { border-color: var(--blue); color: var(--text); }
+  .nav-btn.next { margin-left: auto; background: var(--bg3); }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .mobile-topbar { display: none; }
+  .sidebar-overlay { display: none; }
+
+  @media (max-width: 900px) {
+    .mobile-topbar { display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 30; background: var(--bg2); border-bottom: 1px solid var(--border); padding: 12px 16px; }
+    .hamburger-btn { background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--text); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; font-size: 18px; line-height: 1; }
+    .mobile-topbar-title { font-size: 13px; font-weight: 600; color: var(--text); }
+    .shell { display: block; }
+    .sidebar { position: fixed; top: 0; left: 0; width: 82vw; max-width: 320px; min-width: 0; height: 100vh; z-index: 40; transform: translateX(-100%); transition: transform .25s ease; box-shadow: 2px 0 20px rgba(0,0,0,.5); }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-overlay.open { display: block; position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 35; }
+    .main { padding: 24px 18px 48px; max-width: 100%; }
+    h1 { font-size: 22px; }
+    .page-sub { font-size: 14px; margin-bottom: 24px; padding-bottom: 16px; }
+    h2 { font-size: 16px; }
+    .nav-row { flex-wrap: wrap; }
+  }
+  @media (max-width: 480px) {
+    .main { padding: 20px 16px 40px; }
+    h1 { font-size: 20px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sidebar { transition: none; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<div class="mobile-topbar">
+  <button class="hamburger-btn" onclick="toggleSidebar()" aria-label="Apri il menu">☰</button>
+  <div class="mobile-topbar-title">Curve in moto</div>
+</div>
+
+<nav class="sidebar" aria-label="Sezioni">
+  <div class="sidebar-title">Curve in moto</div>
+
+  <div class="mod-group" id="group-intro">
+    <button class="mod-btn" onclick="showMod('intro')">
+      <span class="mod-dot dot-teal"></span>
+      <span class="mod-btn-text"><strong>Introduzione</strong><span class="mod-label">Principi base</span></span>
+    </button>
+  </div>
+
+  <div class="mod-group" id="group-sequenza">
+    <button class="mod-btn" onclick="showMod('sequenza')">
+      <span class="mod-dot dot-teal"></span>
+      <span class="mod-btn-text"><strong>Sequenza</strong><span class="mod-label">Dal rettilineo all'uscita</span></span>
+    </button>
+  </div>
+
+  <div class="mod-group" id="group-contesto">
+    <button class="mod-btn" onclick="showMod('contesto')">
+      <span class="mod-dot dot-purple"></span>
+      <span class="mod-btn-text"><strong>Tipo di curva</strong><span class="mod-label">Strada e pista</span></span>
+    </button>
+  </div>
+
+  <div class="mod-group" id="group-pendenza">
+    <button class="mod-btn" onclick="showMod('pendenza')">
+      <span class="mod-dot dot-amber"></span>
+      <span class="mod-btn-text"><strong>Discesa e salita</strong><span class="mod-label">Cosa cambia fase per fase</span></span>
+    </button>
+  </div>
+
+  <div class="mod-group" id="group-piano">
+    <button class="mod-btn" onclick="showMod('piano')">
+      <span class="mod-dot dot-blue"></span>
+      <span class="mod-btn-text"><strong>Piano di allenamento</strong><span class="mod-label">Sette step progressivi</span></span>
+    </button>
+  </div>
+
+  <div class="mod-group" id="group-sicurezza">
+    <button class="mod-btn" onclick="showMod('sicurezza')">
+      <span class="mod-dot dot-coral"></span>
+      <span class="mod-btn-text"><strong>Sicurezza</strong><span class="mod-label">Regole per allenarsi</span></span>
+    </button>
+  </div>
+</nav>
+
+<main class="main">
+
+  <!-- INTRODUZIONE -->
+  <div class="mod-page visible" id="mod-intro">
+    <div class="page-eyebrow eyebrow-teal">Introduzione</div>
+    <h1>Curve in moto: sequenza e piano di allenamento</h1>
+    <div class="page-sub">Pensato per la CBR650R. Vale per qualsiasi curva in cui freni e inclini: la sequenza è sempre la stessa, cambia l'intensità di ogni passaggio. Il tornante è l'esempio di partenza. Su strada tieni sempre margine di sicurezza.</div>
+
+    <h2>Principi base</h2>
+    <ul>
+      <li><strong>Corda tardiva:</strong> entri largo, giri tardi, la corda è dopo la metà della curva. Esci con la moto già più dritta e riapri il gas prima.</li>
+      <li><strong>Guarda sempre due curve avanti.</strong> Se dopo c'è un rettilineo lungo, ottimizzi questa curva. Se dopo c'è un'altra curva, sacrifichi un po' la prima per arrivare bene alla seconda.</li>
+      <li><strong>Sguardo:</strong> vai dove guardi. Occhi sull'uscita, non sull'asfalto davanti alla ruota.</li>
+      <li><strong>Margine su strada:</strong> usa al massimo il 60-70% di quello che hai. Non sai cosa c'è dopo la curva.</li>
+    </ul>
+
+    <h2>Come è organizzato</h2>
+    <div class="table-scroll">
+    <table class="anatomy">
+      <thead><tr><th>Sezione</th><th>Cosa contiene</th></tr></thead>
+      <tbody>
+        <tr><td class="part">Sequenza</td><td>I nove passaggi dal rettilineo all'uscita, con la nota sulla postura</td></tr>
+        <tr><td class="part">Tipo di curva</td><td>Cosa cambia tra curva veloce, media, tornante e curva cieca, e tra strada e pista</td></tr>
+        <tr><td class="part">Discesa e salita</td><td>Le differenze nella frenata, nella scalata e nel gas</td></tr>
+        <tr><td class="part">Piano di allenamento</td><td>Sette step da fare uno alla volta</td></tr>
+        <tr><td class="part">Sicurezza</td><td>Le regole per allenarsi senza rischi</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="nav-row">
+      <button class="nav-btn next" onclick="showMod('sequenza')">Sequenza →</button>
+    </div>
+  </div>
+
+  <!-- SEQUENZA -->
+  <div class="mod-page" id="mod-sequenza">
+    <div class="page-eyebrow eyebrow-teal">Sequenza</div>
+    <h1>Sequenza completa, dal rettilineo all'uscita</h1>
+    <div class="page-sub">Nove passaggi in ordine. Quelli segnati «in parallelo» avvengono insieme al passaggio precedente. All'inizio li alleni separati, poi si fondono in un unico movimento.</div>
+
+    <h2>Freno e piega: la staffetta</h2>
+    <p>La frenata forte si fa sul dritto. Quando inizi a inclinare il freno è già sceso, e al punto di corda è a zero.</p>
+    <div class="diagram-box">
+      <svg viewBox="0 0 640 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Pressione sul freno che scende da 100% a 0 mentre la piega aumenta">
+        <line x1="50" y1="40" x2="610" y2="40" stroke="#30363d" stroke-width="1" stroke-dasharray="3,4"/>
+        <line x1="50" y1="160" x2="610" y2="160" stroke="#30363d" stroke-width="2"/>
+        <line x1="260" y1="30" x2="260" y2="170" stroke="#8b949e" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <polyline points="70,40 260,118 420,148 570,160" fill="none" stroke="#f78166" stroke-width="2.5"/>
+        <circle cx="70" cy="40" r="5" fill="#f78166"/>
+        <circle cx="260" cy="118" r="5" fill="#f78166"/>
+        <circle cx="420" cy="148" r="5" fill="#f78166"/>
+        <circle cx="570" cy="160" r="5" fill="#f78166"/>
+        <text x="82" y="32" fill="#f78166" font-size="12">100%</text>
+        <text x="272" y="108" fill="#f78166" font-size="12">30-40%</text>
+        <text x="432" y="138" fill="#f78166" font-size="12">10%</text>
+        <text x="560" y="150" fill="#f78166" font-size="12" text-anchor="end">0</text>
+        <path d="M200,160 C300,160 400,130 570,72" fill="none" stroke="#39d353" stroke-width="2.5" stroke-dasharray="7,5"/>
+        <text x="520" y="62" fill="#39d353" font-size="12" text-anchor="end">piega in aumento</text>
+        <text x="70" y="190" fill="#8b949e" font-size="11">Frenata sul dritto</text>
+        <text x="260" y="190" fill="#8b949e" font-size="11" text-anchor="middle">Inizio piega</text>
+        <text x="420" y="190" fill="#8b949e" font-size="11" text-anchor="middle">Metà curva</text>
+        <text x="570" y="190" fill="#8b949e" font-size="11" text-anchor="middle">Corda</text>
+        <text x="610" y="214" fill="#6e7681" font-size="10.5" text-anchor="end">Valori indicativi, con 100 = frenata massima sul dritto</text>
+      </svg>
+      <div class="diagram-caption">Per iniziare, parti a piegare intorno al 20-30% e allunga la sovrapposizione con l'esperienza.</div>
+    </div>
+
+    <h2>1. Rettilineo: preparazione</h2>
+    <ul>
+      <li>Sguardo lontano: punto di frenata, corda, uscita.</li>
+      <li>Ti porti sul lato esterno della carreggiata.</li>
+      <li>Avampiede sulle pedane, ginocchia al serbatoio, braccia sciolte.</li>
+    </ul>
+
+    <h2>2. Spostamento del sedere (prima di frenare)</h2>
+    <ul>
+      <li>Spingi sulla pedana del lato verso cui ti sposti e scivoli verso l'interno curva. Basta mezza chiappa.</li>
+      <li>Gamba esterna ancorata al serbatoio, con presa attiva. Mai tirarti sul manubrio.</li>
+      <li>Fallo con la moto stabile e con anticipo, senza strappi.</li>
+    </ul>
+
+    <h2>3. Frenata sul dritto</h2>
+    <ul>
+      <li>Freno anteriore deciso fino al massimo, posteriore di supporto.</li>
+      <li>Peso su gambe e serbatoio, non sulle braccia.</li>
+      <li>Controllo: a metà frenata devi poter sciogliere le dita sul manubrio.</li>
+      <li>Sguardo sempre avanti verso la curva.</li>
+    </ul>
+
+    <h2>4. Scalata<span class="tag">in parallelo alla frenata</span></h2>
+    <ul>
+      <li>Una marcia alla volta, con la doppietta per allineare i giri, frizione rilasciata piano.</li>
+      <li>La marcia giusta (seconda o terza per un tornante) deve essere già inserita prima di inclinare.</li>
+      <li>La frizione antisaltellamento della CBR650R perdona piccoli errori, ma non esagerare con le scalate.</li>
+    </ul>
+
+    <h2>5. Rilascio progressivo del freno</h2>
+    <ul>
+      <li>La pressione scende man mano che la velocità cala, come sciogliere un nodo.</li>
+      <li>Non mollare tutto di colpo: la forcella risalirebbe e la moto diventerebbe instabile.</li>
+    </ul>
+
+    <h2>6. Preparazione all'ingresso<span class="tag">in parallelo al rilascio</span></h2>
+    <ul>
+      <li>Apri il ginocchio interno, piede interno con la punta verso il basso e il tallone alto, sempre appoggiato alla pedana.</li>
+      <li>Peso sul piede esterno, ginocchio esterno stretto al serbatoio.</li>
+    </ul>
+
+    <h2>7. Inizio piega</h2>
+    <ul>
+      <li>Parti quando la frenata è sul 30-40% o meno (all'inizio meglio al 20-30%).</li>
+      <li>Busto e testa verso l'interno insieme: spalla interna bassa, mento dentro, naso verso l'uscita.</li>
+      <li>Piccolo impulso sulla pedana interna per far scendere la moto, poi il carico passa sulla pedana esterna.</li>
+      <li>Gomito esterno leggermente alzato, braccia morbide.</li>
+      <li>Il freno continua a scendere verso zero.</li>
+    </ul>
+    <div class="callout callout-tip">
+      <div class="callout-label">Come riconoscerlo</div>
+      <p>Se la moto si impunta o vuole stare dritta, stavi ancora frenando troppo.</p>
+    </div>
+
+    <h2>8. Percorrenza</h2>
+    <ul>
+      <li>Corda tardiva, dopo la metà della curva.</li>
+      <li>Sguardo già sull'uscita.</li>
+      <li>Gas neutro o appena accennato.</li>
+    </ul>
+
+    <h2>9. Corda e uscita</h2>
+    <ul>
+      <li>Freno a zero.</li>
+      <li>Gas che entra dolce, poi più deciso man mano che raddrizzi.</li>
+      <li>Risali con il corpo e guardi già il rettilineo successivo.</li>
+    </ul>
+
+    <div class="callout callout-warn">
+      <div class="callout-label">Nota sulla postura</div>
+      <p>Attenzione a non «avvitarti». Dopo aver spostato il sedere, in ingresso curva anche busto e testa devono andare verso l'interno. Se restano al centro dietro il cupolino sposti poca massa, la moto si inclina di più e le braccia si irrigidiscono. Trucco: porta il petto verso lo specchietto interno, con il naso sopra di esso.</p>
+    </div>
+
+    <div class="nav-row">
+      <button class="nav-btn" onclick="showMod('intro')">← Introduzione</button>
+      <button class="nav-btn next" onclick="showMod('contesto')">Tipo di curva →</button>
+    </div>
+  </div>
+
+  <!-- TIPO DI CURVA, STRADA E PISTA -->
+  <div class="mod-page" id="mod-contesto">
+    <div class="page-eyebrow eyebrow-purple">Tipo di curva</div>
+    <h1>Cosa cambia con la curva, la strada e la pista</h1>
+    <div class="page-sub">L'ordine dei passaggi non cambia mai. Cambiano l'intensità di ognuno e il margine che tieni.</div>
+
+    <h2>Cosa cambia con il tipo di curva</h2>
+    <div class="table-scroll">
+    <table class="anatomy">
+      <thead><tr><th>Tipo di curva</th><th>Spostamento corpo</th><th>Frenata e scalata</th><th>Corda e gas</th></tr></thead>
+      <tbody>
+        <tr><td class="part">Veloce e ampia</td><td>Solo busto, spesso basta</td><td>Corta o assente, al massimo una marcia</td><td>Corda più centrale, gas già in percorrenza</td></tr>
+        <tr><td class="part">Media</td><td>Mezza chiappa</td><td>Frenata che si chiude presto, trail braking breve</td><td>Corda tardiva moderata</td></tr>
+        <tr><td class="part">Tornante o lenta</td><td>Corpo più fuori</td><td>Frenata forte, marce basse (seconda o terza)</td><td>Corda tardiva marcata, gas dopo la corda</td></tr>
+        <tr><td class="part">Cieca o fondo incerto</td><td>Come la media</td><td>Velocità bassa finché non vedi l'uscita</td><td>Corda più tardiva, gas dolce</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h2>Strada e pista</h2>
+    <p>I fondamentali sono gli stessi, cambia quanto li spingi e quanto margine tieni. Su strada guidi in modo dinamico ma con una riserva per l'imprevisto; in pista puoi usare tutto, perché l'ambiente è controllato.</p>
+    <div class="table-scroll">
+    <table class="anatomy">
+      <thead><tr><th>Aspetto</th><th>Strada</th><th>Pista</th></tr></thead>
+      <tbody>
+        <tr><td class="part">Margine</td><td>Usi al massimo il 60-70% di quello che hai</td><td>Puoi arrivare al limite</td></tr>
+        <tr><td class="part">Carreggiata</td><td>Resti nella tua corsia, la corda «da manuale» si adatta</td><td>Usi tutta la larghezza</td></tr>
+        <tr><td class="part">Visibilità</td><td>Non sai cosa c'è dopo la curva: ghiaia, auto, buche, animali</td><td>Conosci il tracciato e hai vie di fuga</td></tr>
+        <tr><td class="part">Postura</td><td>Busto e mezza chiappa, ginocchio aperto solo se viene naturale</td><td>Corpo fuori e ginocchio aperto, se serve</td></tr>
+        <tr><td class="part">Frenata e gas</td><td>Frenate progressive, gas dolce in uscita</td><td>Frenate più tarde, gas aperto il prima possibile</td></tr>
+        <tr><td class="part">Dove allenarlo</td><td>Solo gli step 1 e 2 del piano</td><td>Tutti gli step, meglio con un istruttore</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="nav-row">
+      <button class="nav-btn" onclick="showMod('sequenza')">← Sequenza</button>
+      <button class="nav-btn next" onclick="showMod('pendenza')">Discesa e salita →</button>
+    </div>
+  </div>
+
+  <!-- DISCESA E SALITA -->
+  <div class="mod-page" id="mod-pendenza">
+    <div class="page-eyebrow eyebrow-amber">Discesa e salita</div>
+    <h1>Differenze tra discesa e salita</h1>
+    <div class="page-sub">La sequenza resta la stessa. Cambia il modo in cui il peso si sposta tra anteriore e posteriore.</div>
+
+    <h2>Discesa</h2>
+    <ul>
+      <li>Freni prima, perché il peso va sull'anteriore anche senza frenare.</li>
+      <li>Scali prima, anche una marcia in più, per sfruttare il freno motore.</li>
+      <li>Rilascio del freno ancora più morbido.</li>
+      <li>Gas in uscita molto dolce: il posteriore è più scarico e ha meno grip.</li>
+      <li>La corda tardiva è ancora più utile: più tempo per vedere l'uscita.</li>
+    </ul>
+
+    <h2>Salita</h2>
+    <ul>
+      <li>Freni dopo e meno: la pendenza rallenta già la moto.</li>
+      <li>Scali meno, spesso una sola marcia, per avere coppia subito in uscita.</li>
+      <li>Busto un po' più avanti per non scaricare l'anteriore.</li>
+      <li>La moto scende in piega meno volentieri: può servire un input più deciso.</li>
+      <li>Gas in uscita prima e più deciso: il posteriore è più carico.</li>
+      <li>Visibilità ridotta (creste): tieni più margine.</li>
+    </ul>
+
+    <div class="nav-row">
+      <button class="nav-btn" onclick="showMod('contesto')">← Tipo di curva</button>
+      <button class="nav-btn next" onclick="showMod('piano')">Piano di allenamento →</button>
+    </div>
+  </div>
+
+  <!-- PIANO DI ALLENAMENTO -->
+  <div class="mod-page" id="mod-piano">
+    <div class="page-eyebrow eyebrow-blue">Piano di allenamento</div>
+    <h1>Piano di allenamento a step</h1>
+    <div class="page-sub">Sette step in ordine, uno alla volta, sempre a velocità bassa.</div>
+
+    <div class="callout callout-warn">
+      <div class="callout-label">Regola d'oro</div>
+      <p>Passi allo step successivo solo quando quello prima viene senza pensarci. Sempre a velocità bassa, con un margine enorme.</p>
+    </div>
+    <div class="callout callout-danger">
+      <div class="callout-label">Dove allenarti</div>
+      <p>Parcheggio grande e vuoto, o meglio una giornata di guida sicura con istruttore. Su strada aperta solo gli step 1 e 2, mai quelli di curva.</p>
+    </div>
+
+    <h2>Step 1: sguardo e postura</h2>
+    <ul>
+      <li>In garage, moto sul cavalletto: provi spostamento del sedere, ancoraggio con la gamba esterna, piede interno con punta in giù, braccia sciolte.</li>
+      <li>In rettilineo vuoto a bassa velocità, ti sposti sulla sella e senti che le braccia restano morbide.</li>
+    </ul>
+
+    <h2>Step 2: frenata sul dritto</h2>
+    <ul>
+      <li>Prima spostamento del sedere, poi frenata progressiva sempre allo stesso punto, con un riferimento (cono, cartello).</li>
+      <li>Arrivi alla fine con dita sciolte e busto fermo. Se ti appendi al manubrio, stringi di più con la gamba esterna.</li>
+    </ul>
+
+    <h2>Step 3: scalata durante la frenata</h2>
+    <ul>
+      <li>Aggiungi una scalata alla volta, con doppietta e frizione piano.</li>
+      <li>Obiettivo: marcia giusta prima di inclinare, senza scossoni.</li>
+    </ul>
+
+    <h2>Step 4: rilascio del freno senza curva</h2>
+    <ul>
+      <li>Sul dritto simuli il rilascio progressivo fino a zero.</li>
+      <li>Senti che la forcella risale piano e non di colpo.</li>
+    </ul>
+
+    <h2>Step 5: curva larga e lenta</h2>
+    <ul>
+      <li>Una curva ampia, tipo un cerchio in parcheggio, a bassa velocità.</li>
+      <li>Ingresso con rilascio del freno, apertura del ginocchio, busto dentro, sguardo all'uscita.</li>
+      <li>Cerchi la fluidità, non la velocità.</li>
+    </ul>
+
+    <h2>Step 6: curva vera con corda tardiva</h2>
+    <ul>
+      <li>Prima una curva media, poi il tornante, sempre a velocità ridotta. Poi in discesa o in salita, per sentire come cambia il peso tra anteriore e posteriore.</li>
+      <li>Entri largo, freni sul dritto, scali, rilasci, pieghi tardi e apri il gas dopo la corda.</li>
+    </ul>
+
+    <h2>Step 7: alzare piano la velocità</h2>
+    <ul>
+      <li>Aumenti di poco la velocità solo quando tutto sembra facile.</li>
+      <li>Un parametro alla volta: o freni un po' più tardi, o entri un po' più veloce, mai tutti e due.</li>
+    </ul>
+
+    <div class="nav-row">
+      <button class="nav-btn" onclick="showMod('pendenza')">← Discesa e salita</button>
+      <button class="nav-btn next" onclick="showMod('sicurezza')">Sicurezza →</button>
+    </div>
+  </div>
+
+  <!-- SICUREZZA -->
+  <div class="mod-page" id="mod-sicurezza">
+    <div class="page-eyebrow eyebrow-coral">Sicurezza</div>
+    <h1>Sicurezza</h1>
+    <div class="page-sub">Regole da rispettare in ogni sessione di allenamento.</div>
+
+    <ul>
+      <li>Sessioni brevi, 20-30 minuti: da stanco peggiori.</li>
+      <li>Se sbagli, rallenti e rifai, non insisti.</li>
+      <li>Abbigliamento completo, anche in parcheggio.</li>
+      <li>Se puoi, una giornata con istruttore: ti dice esattamente dove sbagli. Il tuo punto debole è capire quando rilasciare il freno, e un occhio esterno aiuta proprio lì.</li>
+    </ul>
+
+    <div class="nav-row">
+      <button class="nav-btn" onclick="showMod('piano')">← Piano di allenamento</button>
+      <button class="nav-btn next" onclick="showMod('intro')">↺ Torna all'introduzione</button>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<script>
+var MODS = ['intro', 'sequenza', 'contesto', 'pendenza', 'piano', 'sicurezza'];
+
+function toggleSidebar() {
+  document.querySelector('.sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('open');
+}
+function closeSidebar() {
+  document.querySelector('.sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
+}
+
+function showMod(name, fromHash) {
+  if (MODS.indexOf(name) === -1) { name = 'intro'; }
+  document.querySelectorAll('.mod-page').forEach(function (p) { p.classList.remove('visible'); });
+  document.querySelectorAll('.mod-btn').forEach(function (b) { b.classList.remove('active'); });
+
+  var page = document.getElementById('mod-' + name);
+  if (page) { page.classList.add('visible'); }
+  var grp = document.getElementById('group-' + name);
+  if (grp) {
+    var btn = grp.querySelector('.mod-btn');
+    if (btn) { btn.classList.add('active'); }
+  }
+
+  if (!fromHash) {
+    try { location.hash = name; } catch (e) {}
+  }
+  window.scrollTo(0, 0);
+  closeSidebar();
+}
+
+window.addEventListener('hashchange', function () {
+  showMod(location.hash.replace('#', ''), true);
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+  showMod(location.hash.replace('#', '') || 'intro', true);
+});
+</script>
+</body>
+</html>
