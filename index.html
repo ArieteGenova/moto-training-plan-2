@@ -99,6 +99,14 @@
   .nav-btn:hover { border-color: var(--blue); color: var(--text); }
   .nav-btn.next { margin-left: auto; background: var(--bg3); }
 
+  .divider { border: none; border-top: 1px solid var(--border); margin: 36px 0; }
+  .shortcut-row { margin: 4px 0 20px; border-radius: 6px; }
+  .shortcut { display: inline-flex; align-items: center; gap: 6px; background: var(--blue-dim); border: 1px solid var(--blue); color: var(--blue); border-radius: 6px; padding: 6px 12px; font-family: var(--sans); font-size: 13px; line-height: 1.4; cursor: pointer; text-align: left; transition: color .15s; }
+  .shortcut:hover { color: var(--text); }
+  [id^="rif-"], [id^="approf-"] { scroll-margin-top: 76px; }
+  .flash { animation: flash 1.5s ease; }
+  @keyframes flash { 0% { background: var(--amber-dim); } 100% { background: transparent; } }
+
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: var(--bg); }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
@@ -126,6 +134,7 @@
   }
   @media (prefers-reduced-motion: reduce) {
     .sidebar { transition: none; }
+    .flash { animation: none; }
   }
 </style>
 </head>
@@ -183,6 +192,12 @@
       <span class="mod-btn-text"><strong>Sicurezza</strong><span class="mod-label">Regole per allenarsi</span></span>
     </button>
   </div>
+  <div class="mod-group" id="group-approfondimenti">
+    <button class="mod-btn" onclick="showMod('approfondimenti')">
+      <span class="mod-dot dot-purple"></span>
+      <span class="mod-btn-text"><strong>Approfondimenti</strong><span class="mod-label">Domande e risposte</span></span>
+    </button>
+  </div>
 </nav>
 
 <main class="main">
@@ -211,6 +226,7 @@
         <tr><td class="part">Discesa e salita</td><td>Le differenze nella frenata, nella scalata e nel gas</td></tr>
         <tr><td class="part">Piano di allenamento</td><td>Sette step da fare uno alla volta</td></tr>
         <tr><td class="part">Sicurezza</td><td>Le regole per allenarsi senza rischi</td></tr>
+        <tr><td class="part">Approfondimenti</td><td>Risposte a due domande nate leggendo la sequenza, con il link per tornare al punto di partenza</td></tr>
       </tbody>
     </table>
     </div>
@@ -274,6 +290,9 @@
       <li>Controllo: a metà frenata devi poter sciogliere le dita sul manubrio.</li>
       <li>Sguardo sempre avanti verso la curva.</li>
     </ul>
+    <div class="shortcut-row" id="rif-ancoraggio">
+      <button class="shortcut" onclick="goTo('approfondimenti','approf-ancoraggio')">Approfondimento: serve ancora stringere il serbatoio? →</button>
+    </div>
 
     <h2>4. Scalata<span class="tag">in parallelo alla frenata</span></h2>
     <ul>
@@ -293,6 +312,9 @@
       <li>Apri il ginocchio interno, piede interno con la punta verso il basso e il tallone alto, sempre appoggiato alla pedana.</li>
       <li>Peso sul piede esterno, ginocchio esterno stretto al serbatoio.</li>
     </ul>
+    <div class="shortcut-row" id="rif-pedana">
+      <button class="shortcut" onclick="goTo('approfondimenti','approf-pedana')">Approfondimento: il peso va sul piede interno o su quello esterno? →</button>
+    </div>
 
     <h2>7. Inizio piega</h2>
     <ul>
@@ -478,11 +500,52 @@
       <li>Sessioni brevi, 20-30 minuti: da stanco peggiori.</li>
       <li>Se sbagli, rallenti e rifai, non insisti.</li>
       <li>Abbigliamento completo, anche in parcheggio.</li>
-      <li>Se puoi, una giornata con istruttore: ti dice esattamente dove sbagli. Il tuo punto debole è capire quando rilasciare il freno, e un occhio esterno aiuta proprio lì.</li>
+      <li>Se puoi, una giornata con istruttore: ti dice esattamente dove sbagli, e un occhio esterno aiuta soprattutto a capire quando rilasciare il freno.</li>
     </ul>
 
     <div class="nav-row">
       <button class="nav-btn" onclick="showMod('piano')">← Piano di allenamento</button>
+      <button class="nav-btn next" onclick="showMod('approfondimenti')">Approfondimenti →</button>
+    </div>
+  </div>
+
+  <!-- APPROFONDIMENTI -->
+  <div class="mod-page" id="mod-approfondimenti">
+    <div class="page-eyebrow eyebrow-purple">Approfondimenti</div>
+    <h1>Approfondimenti</h1>
+    <div class="page-sub">Risposte a domande nate leggendo la sequenza. Ognuna ha un link per tornare al punto da cui sei arrivato.</div>
+
+    <h2 id="approf-ancoraggio">Dopo aver spostato il sedere, serve ancora stringere il serbatoio?</h2>
+    <p>In gran parte no. Spostandoti verso l'interno, la coscia e il ginocchio esterni si ritrovano appoggiati al fianco del serbatoio, e quell'appoggio ti ancora in modo più naturale di prima. Non devi «strizzare» con forza come quando sei centrale.</p>
+    <p>Una pressione però la devi comunque dare, soprattutto in frenata forte. La decelerazione ti spinge in avanti: se la gamba esterna è solo appoggiata e non in presa, il peso finisce sulle braccia e sul manubrio, e perdi sensibilità sull'anteriore. La coscia esterna fa da ancora, ma con una presa attiva e decisa. La gamba interna resta più libera.</p>
+    <div class="callout callout-tip">
+      <div class="callout-label">Come capire se ancori bene</div>
+      <p>A metà frenata devi poter sciogliere le dita sul manubrio, senza sentire il busto che scivola in avanti. Se ti serve il manubrio per non andare avanti, stringi di più con la gamba esterna.</p>
+    </div>
+    <div class="shortcut-row">
+      <button class="nav-btn" onclick="goTo('sequenza','rif-ancoraggio')">↩ Torna all'argomento</button>
+    </div>
+
+    <hr class="divider">
+
+    <h2 id="approf-pedana">Il peso va sul piede interno o su quello esterno?</h2>
+    <p>Sul piede esterno. Il ragionamento «sposto il busto all'interno, quindi carico la pedana interna» è logico, ma la meccanica è l'opposto.</p>
+    <p>Quando sposti busto e sedere all'interno il corpo si sbilancia verso l'interno, ma la forza che lo tiene su è la spinta del piede esterno sulla pedana, insieme al ginocchio esterno sul serbatoio. È come appoggiarti alla moto con il fianco esterno. Il piede interno resta leggero, quasi «sospeso»: serve solo come riferimento ed equilibrio.</p>
+    <p>Se carichi il piede interno succedono due cose brutte. La pedana interna è la prima a toccare l'asfalto in piega, quindi rischi di grattare o di sollevare la moto. E la moto tende a raddrizzarsi, perché stai spingendo verso il basso dal lato sbagliato.</p>
+    <div class="callout callout-tip">
+      <div class="callout-label">Una sensazione utile</div>
+      <p>Sentiti «appeso» alla gamba esterna, con il peso che scende sul piede esterno come se fossi seduto sopra di esso. Il busto va dentro, ma il peso vero resta ancorato fuori.</p>
+    </div>
+    <p>Questo vale per la guida sportiva, su strada e in pista. Nella guida turistica, con poca piega, la differenza si nota meno.</p>
+
+    <h2>Perché allora si sente dire «carica la pedana interna»?</h2>
+    <p>Si riferisce a un'altra situazione. A bassa velocità e in manovra (tornanti stretti, inversioni, traffico) spingere sulla pedana interna aiuta la moto a inclinarsi e abbassa il baricentro dal lato della curva. In ingresso curva molti istruttori suggeriscono un impulso breve sulla pedana interna, solo nel momento in cui inizi a inclinare, e poi il peso passa sull'esterno. È un impulso, non un carico costante: è lo stesso del punto 7 della sequenza.</p>
+    <div class="shortcut-row">
+      <button class="nav-btn" onclick="goTo('sequenza','rif-pedana')">↩ Torna all'argomento</button>
+    </div>
+
+    <div class="nav-row">
+      <button class="nav-btn" onclick="showMod('sicurezza')">← Sicurezza</button>
       <button class="nav-btn next" onclick="showMod('intro')">↺ Torna all'introduzione</button>
     </div>
   </div>
@@ -491,7 +554,8 @@
 </div>
 
 <script>
-var MODS = ['intro', 'sequenza', 'contesto', 'pendenza', 'piano', 'sicurezza'];
+var MODS = ['intro', 'sequenza', 'contesto', 'pendenza', 'piano', 'sicurezza', 'approfondimenti'];
+var currentMod = 'intro';
 
 function toggleSidebar() {
   document.querySelector('.sidebar').classList.toggle('open');
@@ -502,8 +566,16 @@ function closeSidebar() {
   document.getElementById('sidebarOverlay').classList.remove('open');
 }
 
-function showMod(name, fromHash) {
+function flash(el) {
+  el.classList.remove('flash');
+  void el.offsetWidth;
+  el.classList.add('flash');
+  setTimeout(function () { el.classList.remove('flash'); }, 1600);
+}
+
+function showMod(name, fromHash, targetId) {
   if (MODS.indexOf(name) === -1) { name = 'intro'; }
+  currentMod = name;
   document.querySelectorAll('.mod-page').forEach(function (p) { p.classList.remove('visible'); });
   document.querySelectorAll('.mod-btn').forEach(function (b) { b.classList.remove('active'); });
 
@@ -518,12 +590,25 @@ function showMod(name, fromHash) {
   if (!fromHash) {
     try { location.hash = name; } catch (e) {}
   }
-  window.scrollTo(0, 0);
   closeSidebar();
+
+  var target = targetId ? document.getElementById(targetId) : null;
+  if (target) {
+    target.scrollIntoView();
+    flash(target);
+  } else {
+    window.scrollTo(0, 0);
+  }
+}
+
+function goTo(name, targetId) {
+  showMod(name, false, targetId);
 }
 
 window.addEventListener('hashchange', function () {
-  showMod(location.hash.replace('#', ''), true);
+  var name = location.hash.replace('#', '');
+  if (name === currentMod) { return; }
+  showMod(name, true);
 });
 
 document.addEventListener('DOMContentLoaded', function () {
